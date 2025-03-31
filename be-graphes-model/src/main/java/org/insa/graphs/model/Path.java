@@ -1,5 +1,6 @@
 package org.insa.graphs.model;
 
+import java.time.chrono.ThaiBuddhistChronology;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +31,7 @@ public class Path {
     public static Path createFastestPathFromNodes(Graph graph, List<Node> nodes)
             throws IllegalArgumentException {
         List<Arc> arcs = new ArrayList<Arc>();
-        // TODO:
+
         return new Path(graph, arcs);
     }
 
@@ -48,6 +49,16 @@ public class Path {
     public static Path createShortestPathFromNodes(Graph graph, List<Node> nodes)
             throws IllegalArgumentException {
         List<Arc> arcs = new ArrayList<Arc>();
+        /*
+         * if (nodes.size()==1){ return new Path(graph, nodes.get(0)); } else { for (int
+         * i=0; i<nodes.size()-1; i++){ Node node = nodes.get(i); Node nextNode =
+         * nodes.get(i+1); if (node.getId() == nextNode.getId()){ continue; } else {
+         *
+         * }
+         *
+         *
+         * }
+         */
         // TODO:
         return new Path(graph, arcs);
     }
@@ -184,22 +195,52 @@ public class Path {
      * </ul>
      *
      * @return true if the path is valid, false otherwise.
-     * @deprecated Need to be implemented.
      */
+
     public boolean isValid() {
-        // TODO:
-        return false;
+
+        if (this.isEmpty()) {
+            return true;
+        }
+
+        if (this.size() == 1) {
+            return true;
+        }
+
+        if (this.arcs.isEmpty() && this.origin == null) {
+            return false;
+        }
+
+        if (this.arcs.get(0).getOrigin() != this.origin) {
+            return false;
+
+        }
+        for (int i = 0; i < this.arcs.size() - 1; i++) {
+            Arc currentArc = this.arcs.get(i);
+            Arc nextArc = this.arcs.get(i + 1);
+            if (currentArc.getDestination() != nextArc.getOrigin()) {
+                return false;
+            }
+            else {
+                return true;
+            }
+
+        }
+        return true;
+
     }
 
     /**
      * Compute the length of this path (in meters).
      *
      * @return Total length of the path (in meters).
-     * @deprecated Need to be implemented.
      */
     public float getLength() {
-        // TODO:
-        return 0;
+        float totalLength = 0;
+        for (Arc arc : this.arcs) {
+            totalLength += arc.getLength();
+        }
+        return totalLength;
     }
 
     /**
@@ -211,7 +252,10 @@ public class Path {
      * @deprecated Need to be implemented.
      */
     public double getTravelTime(double speed) {
-        // TODO:
+        double totalTime = 0;
+        for (Arc arc : this.arcs) {
+            totalTime += arc.getLength() / speed;
+        }
         return 0;
     }
 
@@ -223,6 +267,7 @@ public class Path {
      * @deprecated Need to be implemented.
      */
     public double getMinimumTravelTime() {
+
         // TODO:
         return 0;
     }
