@@ -134,8 +134,36 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
 
     @Override
     public void remove(E x) throws ElementNotFoundException {
-        // TODO:
+        // faire attention de charcher dans les cases non utilisés du tableau puisque sa
+        // taille est plus grande
+        int index = this.array.indexOf(x);
+        /*
+         * if (index == -1) { throw new
+         * ElementNotFoundException("Element n'existe pas dans le tas"); }
+         */
+        boolean notFound = true;
+        E lastElement;
+
+        if (array.get(index).equals(x)) {
+            // Remplacer l'élément à supprimer par le dernier élément du tas
+            lastElement = this.array.get(this.currentSize);
+            this.arraySet(index, lastElement);
+            notFound = false;
+
+
+            if (lastElement.compareTo(x) > 0) {
+                percolateDown(index); // on fait descendre la valeur d'index
+            }
+            else {
+                percolateUp(index); // on fait monter cette valeur
+            }
+        }
+        if (notFound) {
+            throw new ElementNotFoundException(x + "doesn't exist");
+        }
+
     }
+
 
     @Override
     public E findMin() throws EmptyPriorityQueueException {
@@ -196,5 +224,13 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
     public String toString() {
         return BinaryHeapFormatter.toStringTree(this, 8);
     }
+
+    /*
+     * int i; E lastE; boolean notFound = true; for(i = 0; i< this.currentSize; i++) {
+     * if(array.get(i).equals(x)) { lastE = array.get(--currentSize); this.arraySet(i,
+     * lastE); notFound = false; if(lastE.compareTo(x)>0) { percolateDown(i); } else {
+     * percolateUp(i); } break; } } if(notFound) { throw new
+     * ElementNotFoundException(x); }
+     */
 
 }

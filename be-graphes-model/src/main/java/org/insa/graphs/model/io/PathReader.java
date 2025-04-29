@@ -27,4 +27,6 @@ public interface PathReader extends Closeable {
      */
     public void close() throws IOException;
 
+    public Path read();
+
 }

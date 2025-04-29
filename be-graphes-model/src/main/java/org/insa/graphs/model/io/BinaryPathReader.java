@@ -70,4 +70,10 @@ public class BinaryPathReader extends BinaryReader implements PathReader {
         return graph.get(dis.readInt());
     }
 
+    @Override
+    public Path read() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'read'");
+    }
+
 }

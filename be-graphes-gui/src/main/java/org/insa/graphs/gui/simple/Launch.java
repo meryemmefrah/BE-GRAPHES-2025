@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
+import java.io.Reader;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -16,6 +17,7 @@ import org.insa.graphs.model.Path;
 import org.insa.graphs.model.io.BinaryGraphReader;
 import org.insa.graphs.model.io.GraphReader;
 import org.insa.graphs.model.io.PathReader;
+
 
 public class Launch {
 
@@ -51,14 +53,14 @@ public class Launch {
                 "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Paths/path_fr31insa_rangueil_r2.path";
 
         final Graph graph;
-        final Path path;
+        Path path;
 
         // create a graph reader
         try (final GraphReader reader = new BinaryGraphReader(new DataInputStream(
                 new BufferedInputStream(new FileInputStream(mapName))))) {
 
             // TODO: read the graph
-            graph = null;
+            graph = reader.read();
         }
 
         // create the drawing
@@ -70,6 +72,7 @@ public class Launch {
         try (final PathReader pathReader = null) {
 
             // TODO: read the path
+            path = pathReader.readPath(graph);
             path = null;
         }
 
