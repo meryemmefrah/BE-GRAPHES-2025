@@ -133,36 +133,34 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
     }
 
     @Override
+    
     public void remove(E x) throws ElementNotFoundException {
-        // faire attention de charcher dans les cases non utilisés du tableau puisque sa
-        // taille est plus grande
-        int index = this.array.indexOf(x);
-        /*
-         * if (index == -1) { throw new
-         * ElementNotFoundException("Element n'existe pas dans le tas"); }
-         */
-        boolean notFound = true;
-        E lastElement;
-
-        if (array.get(index).equals(x)) {
-            // Remplacer l'élément à supprimer par le dernier élément du tas
-            lastElement = this.array.get(this.currentSize);
-            this.arraySet(index, lastElement);
-            notFound = false;
-
-
-            if (lastElement.compareTo(x) > 0) {
-                percolateDown(index); // on fait descendre la valeur d'index
-            }
-            else {
-                percolateUp(index); // on fait monter cette valeur
+        boolean found = false; // Indique si l'élément à supprimer a été trouvé.
+        for (int i = 0; i < this.currentSize; i++) { // Parcourt tous les éléments du tas.
+            if (this.array.get(i).equals(x)) { // Vérifie si l'élément courant est égal à l'élément à supprimer.
+                found = true; // Marque que l'élément a été trouvé.
+                E lastElement = this.array.get(this.currentSize - 1); // Récupère le dernier élément du tas.
+                this.currentSize--; // Réduit la taille du tas.
+                if (i != this.currentSize) { // Si l'élément à supprimer n'est pas le dernier élément :
+                    this.arraySet(i, lastElement); // Remplace l'élément à supprimer par le dernier élément.
+                    if (lastElement.compareTo(x) > 0) { // Si le dernier élément est plus grand que l'élément supprimé :
+                        percolateDown(i); // Réorganise le tas en descendant l'élément.
+                    } else { // Sinon :
+                        percolateUp(i); // Réorganise le tas en montant l'élément.
+                    }
+                }
+                break; // Sort de la boucle une fois l'élément trouvé et traité.
             }
         }
-        if (notFound) {
-            throw new ElementNotFoundException(x + "doesn't exist");
+        if (!found) { // Si l'élément n'a pas été trouvé dans le tas :
+            throw new ElementNotFoundException(x); // Lève une exception.
         }
 
     }
+
+
+
+
 
 
     @Override
