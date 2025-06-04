@@ -135,24 +135,24 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
     @Override
     
     public void remove(E x) throws ElementNotFoundException {
-        boolean found = false; // Indique si l'élément à supprimer a été trouvé.
-        for (int i = 0; i < this.currentSize; i++) { // Parcourt tous les éléments du tas.
-            if (this.array.get(i).equals(x)) { // Vérifie si l'élément courant est égal à l'élément à supprimer.
-                found = true; // Marque que l'élément a été trouvé.
-                E lastElement = this.array.get(this.currentSize - 1); // Récupère le dernier élément du tas.
-                this.currentSize--; // Réduit la taille du tas.
-                if (i != this.currentSize) { // Si l'élément à supprimer n'est pas le dernier élément :
-                    this.arraySet(i, lastElement); // Remplace l'élément à supprimer par le dernier élément.
-                    if (lastElement.compareTo(x) > 0) { // Si le dernier élément est plus grand que l'élément supprimé :
-                        percolateDown(i); // Réorganise le tas en descendant l'élément.
-                    } else { // Sinon :
-                        percolateUp(i); // Réorganise le tas en montant l'élément.
+        boolean found = false; //indiquer si l'élément à supprimer a été trouvé.
+        for (int i = 0; i < this.currentSize; i++) { //parcourir tous les éléments du tas.
+            if (this.array.get(i).equals(x)) { //vérifier si l'élément courant est égal à l'élément à supprimer.
+                found = true; //marquer que l'élément a été trouvé.
+                E lastElement = this.array.get(this.currentSize - 1); //récupèrer le dernier élément du tas.
+                this.currentSize--; //réduire la taille du tas.
+                if (i != this.currentSize) { //si l'élément à supprimer n'est pas le dernier élément 
+                    this.arraySet(i, lastElement); //remplacer l'élément à supprimer par le dernier élément.
+                    if (lastElement.compareTo(x) > 0) { //si le dernier élément est plus grand que l'élément supprimé 
+                        percolateDown(i); //réorganiser le tas en descendant l'élément.
+                    } else {
+                        percolateUp(i); //sinon réorganiser le tas en montant l'élément.
                     }
                 }
-                break; // Sort de la boucle une fois l'élément trouvé et traité.
+                break; 
             }
         }
-        if (!found) { // Si l'élément n'a pas été trouvé dans le tas :
+        if (!found) { //si l'élément n'a pas été trouvé dans le tas :
             throw new ElementNotFoundException(x); // Lève une exception.
         }
 

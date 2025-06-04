@@ -1,4 +1,3 @@
-
 package org.insa.graphs.algorithm.shortestpath;
 
 import java.util.ArrayList;
@@ -8,106 +7,101 @@ import org.insa.graphs.algorithm.AbstractSolution;
 import org.insa.graphs.algorithm.utils.BinaryHeap;
 import org.insa.graphs.model.Arc;
 import org.insa.graphs.model.Node;
-import org.insa.graphs.model.Point;
 import org.insa.graphs.model.Path;
+import org.insa.graphs.model.Point;
 
 public class AStarAlgorithm extends ShortestPathAlgorithm {
 
-    public AStarAlgorithm(ShortestPathData data) {
-        super(data);
+    public AStarAlgorithm(ShortestPathData donnees) {
+        super(donnees);
     }
 
-    // Calcule le coût estimé à vol d'oiseau entre deux noeuds
-    private double getEstimatedCost(Node from, Node to, ShortestPathData data) {
-        double distance = Point.distance(from.getPoint(), to.getPoint());
-        if (data.getMode() == ShortestPathData.Mode.TIME) {
-            double maxSpeed = data.getGraph().getGraphInformation().getMaximumSpeed();
-            if (maxSpeed <= 0)
-                maxSpeed = 130.0; // km/h par défaut
-            return distance / (maxSpeed * 1000.0 / 3600.0); // conversion m/s
+    // Fonction pour calculer l'heuristique (distance à vol d'oiseau ou temps estimé)
+    private double coutEstime(Node depuis, Node vers, ShortestPathData donnees) {
+        double distance = Point.distance(depuis.getPoint(), vers.getPoint());
+        if (donnees.getMode() == ShortestPathData.Mode.TIME) {
+            double vitesseMax = donnees.getGraph().getGraphInformation().getMaximumSpeed();
+            if (vitesseMax <= 0)
+                vitesseMax = 130.0; // On prend 130km/h si la vitesse max n'est pas définie
+            return distance / (vitesseMax * 1000.0 / 3600.0); // conversion en secondes
         }
         return distance;
     }
 
     @Override
     protected ShortestPathSolution doRun() {
-        final ShortestPathData data = getInputData();
-        int tailleGraphe = data.getGraph().size();
+        // On récupère les données du problème
+        final ShortestPathData donnees = getInputData();
+        int nbSommets = donnees.getGraph().size();
+        Node destination = donnees.getDestination();
 
-        ArrayList<LabelStar> labelSommets = new ArrayList<>(tailleGraphe);
-        Node destination = data.getDestination();
+        // On crée la liste des labels pour chaque sommet
+        ArrayList<LabelStar> listeLabels = new ArrayList<>(nbSommets);
+        boolean[] sommetsVisites = new boolean[nbSommets];
 
-        // Initialisation des labels
-        for (int i = 0; i < tailleGraphe; i++) {
-            Node node = data.getGraph().get(i);
-            double coutEstime = getEstimatedCost(node, destination, data);
-            labelSommets.add(new LabelStar(node, false, -1.0, null, coutEstime));
+        // Initialisation des labels avec coût infini et heuristique
+        for (int i = 0; i < nbSommets; i++) {
+            Node sommet = donnees.getGraph().get(i);
+            double heuristique = coutEstime(sommet, destination, donnees);
+            listeLabels.add(new LabelStar(sommet, false, Double.POSITIVE_INFINITY, null, heuristique));
         }
 
-        BinaryHeap<Label> heap = new BinaryHeap<Label>();
+        BinaryHeap<Label> tas = new BinaryHeap<>();
+        LabelStar labelOrigine = listeLabels.get(donnees.getOrigin().getId());
+        labelOrigine.setNewPath(null, 0.0); // Le coût pour atteindre l'origine est 0
+        tas.insert(labelOrigine);
 
-        LabelStar originLabel = labelSommets.get(data.getOrigin().getId());
-        originLabel.setNewPath(null, 0);
-        heap.insert(originLabel);
+        notifyOriginProcessed(donnees.getOrigin()); // On signale que l'origine est traitée
 
-        notifyOriginProcessed(data.getOrigin());
+        // Boucle principale de l'algo A*
+        while (!tas.isEmpty()) {
+            LabelStar labelMin = (LabelStar) tas.deleteMin(); // On prend le label avec le plus petit coût total
+            int idCourant = labelMin.getNode().getId();
+            if (sommetsVisites[idCourant]) continue; // Si déjà visité, on passe
+            sommetsVisites[idCourant] = true;
+            notifyNodeMarked(labelMin.getNode());
 
-        while (!heap.isEmpty()) {
-            LabelStar currentLabel = (LabelStar) heap.deleteMin();
-            Node currentNode = currentLabel.getNode();
+            // Si on a atteint la destination, on arrête tout
+            if (labelMin.getNode().equals(destination)) break;
 
-            if (currentLabel.getMarque())
-                continue;
-            currentLabel.setMarque();
-            notifyNodeMarked(currentNode);
+            // On regarde tous les voisins du sommet courant
+            for (Arc arc : labelMin.getNode().getSuccessors()) {
+                if (!donnees.isAllowed(arc)) continue; // On saute les arcs interdits
+                Node sommetSuccesseur = arc.getDestination();
+                int idSuccesseur = sommetSuccesseur.getId();
+                if (sommetsVisites[idSuccesseur]) continue; // Déjà traité
 
-            if (currentNode.equals(destination))
-                break;
-
-            for (Arc arc : currentNode.getSuccessors()) {
-                if (!data.isAllowed(arc))
-                    continue;
-                Node succ = arc.getDestination();
-                LabelStar succLabel = labelSommets.get(succ.getId());
-
-                if (!succLabel.getMarque()) {
-                    double newCost = currentLabel.getCost() + data.getCost(arc);
-                    if (succLabel.getCost() == -1.0 || newCost < succLabel.getCost()) {
-                        try {
-                            heap.remove(succLabel);
-                        } catch (Exception ignored) {
-                        }
-                        succLabel.setNewPath(arc, newCost);
-                        heap.insert(succLabel);
-                        notifyNodeReached(succ);
-                    }
+                LabelStar labelSuccesseur = listeLabels.get(idSuccesseur);
+                double coutTemporaire = labelMin.getCost() + donnees.getCost(arc);
+                // Si on trouve un chemin plus court
+                if (coutTemporaire < labelSuccesseur.getCost()) {
+                    labelSuccesseur.setNewPath(arc, coutTemporaire); // On met à jour le père et le coût
+                    tas.insert(labelSuccesseur); // On ajoute dans le tas
+                    notifyNodeReached(sommetSuccesseur); // On signale qu'on a atteint ce sommet
                 }
             }
         }
 
-        // Construction du chemin
-        ArrayList<Arc> arcs = new ArrayList<>();
-        Node node = destination;
-        LabelStar label = labelSommets.get(node.getId());
+        // On reconstruit le chemin à partir de la destination
+        ArrayList<Arc> arcsChemin = new ArrayList<>();
+        Node sommetActuel = destination;
+        LabelStar labelDestination = listeLabels.get(sommetActuel.getId());
 
-        if (label.getCost() == -1.0) {
-            return new ShortestPathSolution(data, AbstractSolution.Status.INFEASIBLE);
-        }
+        // Si le coût est infini, il n'y a pas de solution
+        if (labelDestination.getCost() == Double.POSITIVE_INFINITY)
+            return new ShortestPathSolution(donnees, AbstractSolution.Status.INFEASIBLE);
 
-        while (node != data.getOrigin()) {
-            Arc arc = label.getFather();
-            if (arc == null)
-                break;
-            arcs.add(arc);
-            node = arc.getOrigin();
-            label = labelSommets.get(node.getId());
+        // On remonte les arcs depuis la destination jusqu'à l'origine
+        while (sommetActuel != donnees.getOrigin()) {
+            Arc arc = labelDestination.getPere();
+            if (arc == null) break;
+            arcsChemin.add(arc);
+            sommetActuel = arc.getOrigin();
+            labelDestination = listeLabels.get(sommetActuel.getId());
         }
-        Collections.reverse(arcs);
+        Collections.reverse(arcsChemin); // On remet le chemin dans le bon ordre
 
         notifyDestinationReached(destination);
-        return new ShortestPathSolution(data, AbstractSolution.Status.FEASIBLE, new Path(data.getGraph(), arcs));
+        return new ShortestPathSolution(donnees, AbstractSolution.Status.FEASIBLE, new Path(donnees.getGraph(), arcsChemin));
     }
 }
-
-
-

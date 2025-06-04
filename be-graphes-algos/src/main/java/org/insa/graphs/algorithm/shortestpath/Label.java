@@ -6,20 +6,20 @@ import org.insa.graphs.model.Node;
 
 public class Label implements Comparable<Label> {
 
-    protected Node ActualNode;
+    protected Node sommetCourant;
     protected boolean marque;
-    protected double coutrealise;
-    protected Arc father;
+    protected double coutRealise;
+    protected Arc pere;
 
-    public Label(Node ActualNode, boolean marque, double coutrealise, Arc father) {
-        this.ActualNode = ActualNode;
+    public Label(Node ActualNode, boolean marque, double coutRealise, Arc pere) {
+        this.sommetCourant = ActualNode;
         this.marque = marque;
-        this.coutrealise = coutrealise;
-        this.father=father;
+        this.coutRealise = coutRealise;
+        this.pere=pere;
     }
 
     public Node getNode() {
-        return this.ActualNode;
+        return this.sommetCourant;
     }
 
     public boolean getMarque() {
@@ -27,15 +27,15 @@ public class Label implements Comparable<Label> {
     }
 
     public double getCoutRealise() {
-        return this.coutrealise;
+        return this.coutRealise;
     }
 
     public double getCost() {
-        return this.coutrealise;
+        return this.coutRealise;
     }
 
-    public Arc getFather() {
-        return this.father;
+    public Arc getPere() {
+        return this.pere;
     }
 
     public void setMarque() {
@@ -44,13 +44,14 @@ public class Label implements Comparable<Label> {
 
     /* Setter Pour Cout et Pere */
     public void setNewPath(Arc arcFather, double coutRealise){
-        this.father = arcFather;
-        this.coutrealise = coutRealise;
+        this.pere = arcFather;
+        this.coutRealise = coutRealise;
     }
     public double getTotalCost() {
-        return this.coutrealise; 
+        return this.coutRealise; 
     }
 
+    // Pour comparer deux labels dans le tas (sert à savoir qui a le plus petit coût)
     @Override
     public int compareTo(Label other) {
 
@@ -65,5 +66,3 @@ public class Label implements Comparable<Label> {
         return 0;
     }
 }
-
-

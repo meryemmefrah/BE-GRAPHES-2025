@@ -1,41 +1,41 @@
-
 package org.insa.graphs.algorithm.shortestpath;
 
 import org.insa.graphs.model.Arc;
 import org.insa.graphs.model.Node;
 
+// Classe pour les labels utilisés dans A* (hérite de Label)
 public class LabelStar extends Label {
 
-    private double coutEstime;
+    // L'heuristique estimée pour atteindre la destination (genre la distance à vol d'oiseau)
+    final double coutEstime;
 
-    public LabelStar(Node node, boolean marque, double coutrealise, Arc father, double coutEstime) {
-        super(node, marque, coutrealise, father);
+    // Constructeur du label A*
+    public LabelStar(Node sommet, boolean marque, double coutRealise, Arc pere, double coutEstime) {
+        super(sommet, marque, coutRealise, pere);
         this.coutEstime = coutEstime;
     }
 
+    // Le coût total pour A* (coût déjà parcouru + estimation jusqu'à la fin)
     @Override
     public double getTotalCost() {
-        return this.coutrealise + this.coutEstime;
+        return this.coutRealise + this.coutEstime;
     }
 
+    // Pour récupérer l'heuristique (ça peut servir)
     public double getCoutEstime() {
         return this.coutEstime;
     }
 
-    
+    // Pour comparer deux labels dans le tas (A* regarde le coût total)
     @Override
-    public int compareTo(Label other) {
-        double thisTotal = this.getCost() + this.coutEstime;
-        double otherTotal;
-        if (other instanceof LabelStar) {
-            otherTotal = other.getCost() + ((LabelStar) other).coutEstime;
+    public int compareTo(Label autre) {
+        double monTotal = this.getCost() + this.coutEstime;
+        double autreTotal;
+        if (autre instanceof LabelStar) {
+            autreTotal = autre.getCost() + ((LabelStar) autre).coutEstime;
         } else {
-            otherTotal = other.getCost();
+            autreTotal = autre.getCost();
         }
-    return Double.compare(thisTotal, otherTotal);
+        return Double.compare(monTotal, autreTotal);
     }
-    
-
 }
-
-

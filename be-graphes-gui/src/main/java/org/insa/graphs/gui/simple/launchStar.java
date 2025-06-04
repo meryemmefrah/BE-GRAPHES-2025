@@ -9,6 +9,7 @@ import java.util.List;
 import org.insa.graphs.algorithm.AbstractSolution;
 import org.insa.graphs.algorithm.ArcInspector;
 import org.insa.graphs.algorithm.ArcInspectorFactory;
+import org.insa.graphs.algorithm.shortestpath.AStarAlgorithm;
 import org.insa.graphs.algorithm.shortestpath.BellmanFordAlgorithm;
 import org.insa.graphs.algorithm.shortestpath.DijkstraAlgorithm;
 import org.insa.graphs.algorithm.shortestpath.ShortestPathData;
@@ -18,7 +19,7 @@ import org.insa.graphs.model.Node;
 import org.insa.graphs.model.io.BinaryGraphReader;
 import org.insa.graphs.model.io.GraphReader;
 
-public class Launch {
+public class launchStar {
 
     // Petite fonction pour comparer deux réels (genre pour les longueurs)
     public static boolean egalDouble(double a, double b) {
@@ -58,7 +59,7 @@ public class Launch {
 
         // On lance les tests pour chaque scénario
         for (Scenario sc : scenarios) {
-            System.out.println("=== Test scénario (Dijkstra) sur carte : " + sc.nomCarte + " ===");
+            System.out.println("=== Test scénario (A*) sur carte : " + sc.nomCarte + " ===");
             Graph graphe;
             try (GraphReader reader = new BinaryGraphReader(new DataInputStream(
                     new BufferedInputStream(new FileInputStream(sc.nomCarte))))) {
@@ -70,21 +71,32 @@ public class Launch {
             ArcInspector filtre = ArcInspectorFactory.getAllFilters().get(sc.mode);
             ShortestPathData data = new ShortestPathData(graphe, origine, destination, filtre);
 
-            // Test Dijkstra
+            // Test A*
+            AStarAlgorithm astar = new AStarAlgorithm(data);
+            ShortestPathSolution solAstar = astar.run();
+
+            // On compare aussi avec Dijkstra pour voir si c'est pareil
             DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(data);
             ShortestPathSolution solDij = dijkstra.run();
+            System.out.println("  - Statut Dijkstra : " + solDij.getStatus());
+            System.out.println("  - Statut A* : " + solAstar.getStatus());
+            if (solAstar.getStatus() == AbstractSolution.Status.FEASIBLE && solDij.getStatus() == AbstractSolution.Status.FEASIBLE) {
+                System.out.println("  - Longueur Dijkstra : " + solDij.getPath().getLength());
+                System.out.println("  - Longueur A* : " + solAstar.getPath().getLength());
+                System.out.println("  - Résultat identique Dijkstra/A* ? " + egalDouble(solDij.getPath().getLength(), solAstar.getPath().getLength()));
+            }
 
-            // On vérifie si le chemin trouvé par Dijkstra est correct
-            if (solDij.getStatus() == AbstractSolution.Status.FEASIBLE) {
+            // On vérifie si le chemin trouvé par A* est correct
+            if (solAstar.getStatus() == AbstractSolution.Status.FEASIBLE) {
                 System.out.println("Chemin trouvé !");
-                System.out.println("  - Chemin valide ? " + solDij.getPath().isValid());
-                System.out.println("  - Longueur : " + solDij.getPath().getLength());
-                System.out.println("  - Temps : " + solDij.getPath().getMinimumTravelTime());
-                // On vérifie que le coût affiché par Dijkstra est cohérent avec le chemin
+                System.out.println("  - Chemin valide ? " + solAstar.getPath().isValid());
+                System.out.println("  - Longueur : " + solAstar.getPath().getLength());
+                System.out.println("  - Temps : " + solAstar.getPath().getMinimumTravelTime());
+                // On vérifie que le coût affiché par A* est cohérent avec le chemin
                 if (sc.mode == 0) {
-                    System.out.println("  - Vérif coût distance (Dijkstra) : " + egalDouble(solDij.getPath().getLength(), solDij.getPath().getLength()));
+                    System.out.println("  - Vérif coût distance (A*) : " + egalDouble(solAstar.getPath().getLength(), solAstar.getPath().getLength()));
                 } else {
-                    System.out.println("  - Vérif coût temps (Dijkstra) : " + egalDouble(solDij.getPath().getMinimumTravelTime(), solDij.getPath().getMinimumTravelTime()));
+                    System.out.println("  - Vérif coût temps (A*) : " + egalDouble(solAstar.getPath().getMinimumTravelTime(), solAstar.getPath().getMinimumTravelTime()));
                 }
             } else {
                 System.out.println("Pas de chemin trouvé (INFEASIBLE)");
@@ -95,15 +107,15 @@ public class Launch {
                 BellmanFordAlgorithm bellman = new BellmanFordAlgorithm(data);
                 ShortestPathSolution solBell = bellman.run();
                 System.out.println("  - Statut Bellman-Ford : " + solBell.getStatus());
-                System.out.println("  - Statut Dijkstra : " + solDij.getStatus());
-                if (solDij.getStatus() == AbstractSolution.Status.FEASIBLE && solBell.getStatus() == AbstractSolution.Status.FEASIBLE) {
+                System.out.println("  - Statut A* : " + solAstar.getStatus());
+                if (solAstar.getStatus() == AbstractSolution.Status.FEASIBLE && solBell.getStatus() == AbstractSolution.Status.FEASIBLE) {
                     System.out.println("  - Longueur Bellman : " + solBell.getPath().getLength());
-                    System.out.println("  - Longueur Dijkstra : " + solDij.getPath().getLength());
-                    System.out.println("  - Résultat identique Bellman/Dijkstra ? " + egalDouble(solBell.getPath().getLength(), solDij.getPath().getLength()));
+                    System.out.println("  - Longueur A* : " + solAstar.getPath().getLength());
+                    System.out.println("  - Résultat identique Bellman/A* ? " + egalDouble(solBell.getPath().getLength(), solAstar.getPath().getLength()));
                 }
             }
             System.out.println();
         }
-        System.out.println("Tous les scénarios Dijkstra sont terminés ! (si tout est ok, c'est bon 🎉)");
+        System.out.println("Tous les scénarios A* sont terminés ! (si tout est ok, c'est bon 🎉)");
     }
 }
